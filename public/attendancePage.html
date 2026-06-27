@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark Attendance | CodersHub</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #f4f6f9;
+        }
+
+        .card {
+            width: 400px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #2563eb;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="card">
+        <h2>Mark Attendance</h2>
+
+        <form id="attendance">
+
+            <div class="form-group">
+                <label>Full Name</label>
+                <input oninput="saveData()" type="text" id="name" name="name" placeholder="Enter your full name"
+                    required>
+            </div>
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <input oninput="saveData()" type="" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" name="password" placeholder="Enter your password" required>
+            </div>
+
+            <button type="submit">
+                Mark Attendance
+            </button>
+
+        </form>
+
+        <div class="footer">
+            Simple Attendance Management System
+        </div>
+    </div>
+
+</body>
+<script>
+    function saveData() {
+        localStorage.setItem("name", document.getElementById("name").value);
+        localStorage.setItem("email", document.getElementById("email").value);
+    }
+
+    window.onload = () => {
+        document.getElementById("name").value =
+            localStorage.getItem("name") || "";
+
+        document.getElementById("email").value =
+            localStorage.getItem("email") || "";
+    };
+
+
+
+
+    /////// Api fetch 
+
+    document.getElementById("attendance")
+        .addEventListener("submit", (e) => handleAttendance(e));
+
+    const handleAttendance = async (e) => {
+        e.preventDefault();
+        const bodyData = {
+            name: document.getElementById("name").value,
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value,
+        }
+        // alert(document.getElementById("name").value)
+        console.log(bodyData)
+        try {
+            const res = await fetch('http://localhost:3000/api/attendance', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(bodyData)
+            });
+            const data = await res.json();
+            console.log(data)
+            if (data.success) {
+                alert(data.message);
+            } else {
+                alert(data.message)
+            }
+
+        } catch (error) {
+            console.log(error);
+            alert("Addtendance not working....");
+        }
+    }
+
+</script>
+
+</html>

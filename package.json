@@ -1,0 +1,17 @@
+{
+  "name": "prisma-mysql-backend",
+  "version": "1.0.0",
+  "description": "RESTful backend built with Express.js, Prisma ORM, and MySQL featuring CRUD operations and database management.",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch index.js"
+  },
+  "author": "Susanta",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "express": "^5.2.1",
+    "prisma": "^6.19.3"
+  }
+}

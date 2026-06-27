@@ -1,0 +1,215 @@
+
+
+
+////////////// ⭐ steps : in this project ⭐ /////////////////
+
+/*
+1s :   create express app 
+       routes : '/' home 
+
+s2 :   create routes authRoutes : '/register' , '/login' 
+s3 :   create routes controller : 'getRegisterPage' , 'getLoginPage, postLogin' 
+s4 :   in postLogin set cookies redirect to login page 
+s5 :   create routes authRoutes : '/countryapp' 
+s6 :   create routes controller : 'countryappController' 
+s7 :   countryappController : check condition based on cookies 
+            if cookie == true : send countryApp  else : redirect to login page 
+
+s8 :   create '/login/isUserLogin (get) in routes 
+       create route controller isUserLoginResponse
+            depending on cookie 
+                if cookie == true give res as : {userLoginOrNot: true } else : {userLoginOrNot: false }
+            
+s9  :   In naveBar include profile section 
+            and give a get request to /login/isUserLogin routes
+                    receive userLoginOrNot: true / false
+                        depending on hide or show the user profile 
+
+s10 :   DB connection : 
+        i)   create .env file 
+        ii)  npm i dotenv 
+        iii) DB-Connection.js : this file connect db in side a fun and export it 
+        iv)  receive it in app.js and call this function 
+s11 :   create user schema 
+        i) we already connect db 
+    in model/userSchema file : 
+        ii) import mongoose and create user model
+
+s12 :   app.use(express.urlEncoded)  in app.js 
+
+s8 :   create '/register (post) in routes 
+       create route controller postRegister
+            depending on user model  
+                check user email is already exists or not 
+                    if not present : insert req.body data in user model by (userModel.create(userData)) 
+                    else : send false response to frontend 
+
+s8.1: in app.js add : app.use(express.json()); 
+        to accept json data from frontend;
+
+s8.2:   In register page : 
+            form submit reload off
+            give a post request to '/register'
+                send form data as json formate .
+                    if backend response.success is true : 
+                        redirect to '/login'
+                    else : alert : "user exist ..."
+
+S9 :   iN SAME WAY DO FOR LOGIN PAGE 
+
+S00 :  Now hash the user password and store it in DB
+            using package : npm i bcrypt
+                to hash password we use : await bcrypt.hash(password, 10);  [where 10 is the salt value]  store this hash PW in DB
+                to compare user password store in db we use : await bcrypt.compare(userEnteredPW, hashPWInDB); it will automatically compare each of them 
+    BUT WE CAN'T USE IT IN OUR PROJECT WE USE : argon2  
+
+S10 :   9 We use argon2 for password hashing : 
+            npm i argon2;
+                in side register(post) : after chalking user existence 
+                    save user enter PW with hash in DB : 
+                       hashPW = await argon2.hash(password);
+
+                in side login(post) : after chalking user existence 
+                    check user entered PW == DB PW
+                       like : const check = await argon2.verify(DBHashedPW, userEnteredPW);
+                          if(check): login , else : not
+
+s11: JWT instead of session base token :
+        npm i jsonwebtoken 
+            inside login (post) : 
+                if userEnteredPW == DBPw 
+                    create an token using JWT :
+                        like : token = jwt.sign({userName, userEmail...}, SecretKey, {expiresIn: "10d"})
+                                                        👆 payload where user details give          
+                        jwt.sign(Headers, Payload, Signature)    Headers will automatic set
+
+s11.2 : Verify this token : instead of Boolean(req.cookies.isLogin);
+        using a middleware called verifyAuthentication from 'middleware/verifyAuth...js'
+        we use it in app.js: app.use(verifyAuthentication)
+            FOR EVERY ROUTE ACCESS THIS WILL RUN :
+                verifyAuthentication(req, res, nest) => { // 3 parameter are use where 
+                    const token = req.cookies.accessToken;
+                    if token : 
+                        decode cookies token like : - 
+                        const decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
+                            and set it in req.user   whish is called custom property : 
+                }
+            And use it for check cookies instead of isLogin == true (in countryApp routes or more )
+
+S12 :  Protect routes : profile (get)
+            if req.user : present : then show user using req.user custom obj 
+            else : redirect to /login 
+
+S13 :  create Protect routes : 
+            using : req.user value : 
+                if(req.user){
+                    res.render("this page");
+                }else{
+                    res.redirect('/login);
+                }
+
+S14 :  create logout option : 
+            add a route '/logout' controller logoutUser : res.clearCookie('accessToken);
+            cookies deleted and user logout 
+
+S15 : create another schema for save favorite county in db : 
+            countrySchema = {
+                nameOrId : 'dsf',
+                other : '',
+                user: {type: mongoose.Schema.ObjectId, ref: userDetails}
+            }
+        mean it can store country for each user separately 
+
+S16 : create '/countryapp/savecountry' (post) for postCountrySave controller to save favorite in DB
+
+S17 : Actual county app  added 
+
+S18:  Favorite feature add and status added 
+
+////// Now we start for implement Hybrid Authentication /////
+
+S19 :  create session schema : 
+            where we need user ipaddress we get it by 'npm i request-ip' this package 
+                app.use(requestIp.mw());  // by this we can access client ipaddress like : req.clientIp;
+
+S20 : in postLogin : insert user in sessionTable
+s20.1 : generate accessToken and refreshToken using session id : and set this 2 token in cookie 
+
+                if user not accessing WB for 15minutes accessToken deleted 
+                    then we have to create again accessToken without entering PW again 
+                        for this reason we need to help refreshToken to get sessionID 
+                            with the help of sessionId we retrieve corresponding user 
+                                and create again accessToken 
+                                      we do this cycle (using verifyMiddle) utile refreshToken is not deleted (7day)
+                                          if it deleted  then user have to login manually 
+
+S21 : in verifyMiddleware : 
+            if accessToken and refreshToken are not present the req.user = null; (mean user logout);
+            if accessToken present mean user accessing WB with in 15minutes 
+                decode accessToken and set req.user = decodeToken
+            if accessToken not present 
+              but refreshToken present : 
+                 decode it and receive sessionID 
+                    with the help of sessionID receive corresponding userId
+                       help of this id receive user details from userTable 
+                            and create accessToken and refreshToken again 
+                                and set cookies 
+            if refreshToken is not present then user have to login manually 
+
+S22 : logout user : in logoutUser controller : 
+        delete the session record from sessionTable using sessionId from req.user who is logged in 
+        delete accessToken, refreshToken 
+
+S23 : login after register :  in postRegister 
+            afterRegisterLogin() same as in postLogin()
+
+S24 : Verify email : 
+     add an attribute in userSchema 'isVerified' default false 
+      create verifyEmailTable schema 
+        create 'verify-email' router in authRoutes and verifyEmailPage controller
+          if user not login or verified : redirect to '/'
+            else : send the verifyEmailPage 
+              user click : resend verify email bolton hit
+S24.2 :   'resend-verification-link' (get) route with controller resendVerificationLink 
+            if user not login or verified : redirect to '/';
+              generate 8 digit token
+                delete record (existing token previously created token by user) from verifyEmailTable with userId 
+                  then insert token with corresponding user in verifyEmailTable 
+                    create a link using token, email (use URL Api to create this url)
+                      create an function to send email and token 'sendEmail'
+                        with parameter like to(user.email), subject, html(link, code)
+S24.3 :  install node mailer : nmp i nodemailer
+            create a folder called 'lib' 
+              create file called 'nodemailer.js'
+                create nodemailer.createTransport()
+                  give Ethereal mail, password 
+                    export sendEmail(
+                      emailURL = transporter.sendMail()
+                        log(emailURL) This Ethereal url give the verification email & code page with corresponding html email response
+                    );
+                        give a alert that email has been sended  
+                            after this sendEmail() in resendVerificationLink controller redirect='/verify-email''
+
+S24.4: add a root '/verify-email-token' to check code or verification link that are send in Ethereal Email 
+        we code from user using query parameter 
+          for entering code in : '/verify-email' page : in this page code will enter in input box but email wil send as query using this line <input type='hidden' name='email' value='<%= email %>
+          for clicking verification link in : Ethereal Mail page 
+        After get code from user we do :
+          check if user already verified or not 
+            check req.query .token and .email present 
+              using this email fetch user data from userTable 
+                using this userData._id fetch tokenDetails from verifyTokenTable 
+                  check req.token == token in verifyTokenTable AND new Date() > expireAt
+                    for this user isVerified = true in db 
+                      and delete token from verifyTokenTable
+                        and render = 'afterVerifyPage', {verified: true}
+
+S25 : instead of Ethereal mail in console we implement real send mail on official gmail :
+        using gmail app password : In google account goto 'manege your..' search 'app passwords'
+                                    go 'app password' Now create an new : enter app name
+                                      click : 'cerate'
+                                        copy : hash password 
+          video reference : https://youtu.be/u-_Ygo2wcrs?si=jH2eoV5uLn5g4ZRc || WEBER MOHIT || How to send an email with nodemailer 
+        *when we user this hash password in transporter remove spaces between password           
+      
+
