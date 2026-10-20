@@ -22,6 +22,7 @@ app.get('/', rateLimiter, (req, res) => {
 });
 app.use("/api",attendanceRoutes);
 
-app.listen(4000, () => {
-    console.log(`server : http://localhost:${4000}/`); 
+const port = process.env.PORT || 3001;
+app.listen(port, "0.0.0.0", () => {
+    console.log(`server : http://localhost:${port}/`); 
 })
