@@ -13,6 +13,8 @@ RESTful backend built with Express.js, Prisma ORM, and MySQL featuring CRUD oper
     install : prisma : npm i prisma
     install : prisma/client : npm i @prisma/client
 
+    install prisma 6 :  npm install prisma@6.16.2 @prisma/client@6.16.2
+
     then> npx prisma init 
     this will  : 
     Initialized Prisma in your project
@@ -38,13 +40,15 @@ RESTful backend built with Express.js, Prisma ORM, and MySQL featuring CRUD oper
     }
 
 ## Models are create inside this schema.prisma file 
+
+### To giving  the table name always give prurel name. This is very help full.
     generator client {}
       .......
       ......{
       url= env("DATABASE_URL")        
     }
 
-    model user{
+    model users{ //add s at end 
       id     Int      @id @default(autoincrement())
       name   String
       email  String   @unique
@@ -54,7 +58,7 @@ RESTful backend built with Express.js, Prisma ORM, and MySQL featuring CRUD oper
       ....
       ...
     }
-### We have to create all model in this file 
+### We have to create all model in this file
 
 ## For checking is all ok :
     npx prisma validate
